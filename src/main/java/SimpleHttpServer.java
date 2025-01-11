@@ -6,13 +6,17 @@ public class SimpleHttpServer {
 
     public static void main(String [] args){
 
-        final int port = 808;
+        final int port = 8080;
         try(ServerSocket serverSocket = new ServerSocket(port);) {
-            Socket socket = serverSocket.accept();
-            handleRequest(socket);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Running Server at port " + port);
+            while (true) {
+                Socket socket = serverSocket.accept();
+                handleRequest(socket);
+            }
+        } catch(IOException e){
+            System.out.println("Error Handling Request");
         }
+
     }
 
     private static void handleRequest(Socket socket){
@@ -26,12 +30,30 @@ public class SimpleHttpServer {
             String path = parts[1];
 
             if("GET".equalsIgnoreCase(requestMethod) && "/messages".equalsIgnoreCase(path)){
-
+                writeResponse(outputStream);
             }
 
         } catch (IOException e) {
             System.out.println("Filed to handle request");
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                System.out.println("Error closing socket" + e.getMessage());
+            }
         }
+    }
+
+    private static void writeResponse(OutputStream outputStream) throws IOException {
+        String message = "Hello from Mikey";
+        String httpResponse = """
+                HTTP/1.1 200 OK
+                Content-Type: text/plain
+                Content-Length:""" + message.length() +  "\n\n" +
+                message;
+        outputStream.write(httpResponse.getBytes());
+        outputStream.flush();
+        outputStream.close();
     }
 
 }
