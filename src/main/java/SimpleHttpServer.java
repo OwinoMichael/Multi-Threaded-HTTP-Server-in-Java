@@ -15,7 +15,23 @@ public class SimpleHttpServer {
         }
     }
 
+    private static void handleRequest(Socket socket){
+        try(InputStream inputStream = socket.getInputStream();
+            OutputStream outputStream = socket.getOutputStream()){
 
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            String line = bufferedReader.readLine();
+            String [] parts =  line.split(" ");
+            String requestMethod = parts[0];
+            String path = parts[1];
+
+            if("GET".equalsIgnoreCase(requestMethod) && "/messages".equalsIgnoreCase(path)){
+
+            }
+
+        } catch (IOException e) {
+            System.out.println("Filed to handle request");
+        }
     }
 
 }
