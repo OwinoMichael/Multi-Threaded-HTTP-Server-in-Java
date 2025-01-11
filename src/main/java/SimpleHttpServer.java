@@ -1,17 +1,27 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SimpleHttpServer {
 
     public static void main(String [] args){
 
         final int port = 8080;
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                4,
+                4,
+                0,
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(50));
         try(ServerSocket serverSocket = new ServerSocket(port);) {
             System.out.println("Running Server at port " + port);
             while (true) {
                 Socket socket = serverSocket.accept();
-                handleRequest(socket);
+                threadPoolExecutor.execute(() -> handleRequest(socket));
+
             }
         } catch(IOException e){
             System.out.println("Error Handling Request");
@@ -28,13 +38,15 @@ public class SimpleHttpServer {
             String [] parts =  line.split(" ");
             String requestMethod = parts[0];
             String path = parts[1];
-
+            Thread.sleep(1000);
             if("GET".equalsIgnoreCase(requestMethod) && "/messages".equalsIgnoreCase(path)){
                 writeResponse(outputStream);
             }
 
         } catch (IOException e) {
             System.out.println("Filed to handle request");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 socket.close();
